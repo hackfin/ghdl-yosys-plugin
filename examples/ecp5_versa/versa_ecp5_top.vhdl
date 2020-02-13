@@ -9,7 +9,7 @@ use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 
 library work;
-
+	use work.system_map.all;
 
 entity versa_ecp5_top is
     generic(
@@ -66,7 +66,13 @@ architecture behaviour of versa_ecp5_top is
     signal counter : integer range 0 to f_half;
     signal toggle_led : std_ulogic := '0';
 
-	-- MAC clocks:
+	-- Uart signals:
+	signal uart_ctrl      : uart_WritePort;
+	signal uart_stat      : uart_ReadPort;
+
+    signal uart_idle      : std_ulogic := '0';
+    signal rxready_d      : std_ulogic := '0';
+	signal uart_data      : unsigned(7 downto 0);
 
  
 begin
@@ -120,14 +126,58 @@ clk_pll1: entity work.pll_mac
         LOCK    =>  mclk_locked
 	);
 
+	-- Static config:
+	uart_ctrl.uart_clkdiv <= to_unsigned(CLK_FREQUENCY / 16 / 115200, 10);
+	uart_ctrl.rx_irq_enable <= '0';
+	uart_ctrl.uart_reset <= comb_reset;
+
+-- UART loopback logic:
+	process (mclk)
+	begin
+		if rising_edge(mclk) then
+			uart_ctrl.select_uart_txr <= '0'; -- default 0
+			uart_ctrl.select_uart_rxr <= '0'; -- default 0
+			rxready_d <= uart_stat.rxready;
+			if uart_idle = '1' then
+				uart_idle <= '0';
+			else
+				if rxready_d = '1' then
+					-- Modify the data a bit:
+					if uart_data > x"40" and uart_data < x"ff" then
+						uart_ctrl.uart_txr <= uart_data and "01011111";
+					else
+						uart_ctrl.uart_txr <= uart_data;
+					end if;
+					uart_ctrl.select_uart_txr <= '1'; -- signal a write
+				end if;
+				if uart_stat.rxready = '1' then
+					uart_data <= uart_stat.rxdata; -- Read data
+					uart_ctrl.select_uart_rxr <= '1'; -- signal a read
+					uart_idle <= '1'; -- Wait state
+				end if;
+			end if;
+		end if;
+	end process;
+
+uart_inst:
+	entity work.uart_core
+	port map (
+		tx        => txd_uart,
+		rx        => rxd_uart,
+		rxirq     => open,
+		ctrl      => uart_ctrl,
+		stat      => uart_stat,
+		clk       => mclk
+	);
+
     led(0) <= toggle_led;
-    led(1) <= not rxd_uart;
+    led(1) <= '0';
     led(2) <= '1';
 	led(3) <= '0';
 	led(4) <= '0';
-	led(5) <= '0';
+	led(5) <= not rxd_uart;
 	led(6) <= '0';
-	led(7) <= '0';
+	led(7) <= uart_stat.rxovr;
 
 	-- Note LED are low active
 	oled <= not std_logic_vector(led);
@@ -136,7 +186,7 @@ clk_pll1: entity work.pll_mac
 	twi_scl <= 'H';
 
 
-	txd_uart   <= rxd_uart;
+	-- txd_uart   <= rxd_uart;
 	
 
 end behaviour;

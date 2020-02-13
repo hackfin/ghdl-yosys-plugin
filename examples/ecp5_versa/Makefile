@@ -17,11 +17,15 @@ OPENOCD_DEVICE_CONFIG = ../../openocd/LFE5UM5G-45F.cfg
 WORKDIR = work
 # Files to synthesize:
 VHDL_SYN_FILES = versa_ecp5_top.vhdl pll_mac.vhd
+VHDL_SYN_FILES += soc_iomap_pkg.vhdl
+VHDL_SYN_FILES += uart.vhdl uart_tx.vhdl uart_rx.vhdl fifobuf.vhdl
+
 TOPLEVEL = versa_ecp5_top
 TOPLEVEL_PARAMETER = _$(CLK_FREQ)
 
 VERILOG_FILES = $(LIB)/wrapper/primitives.v
 VERILOG_FILES += $(LIB)/wrapper/wrapper.v
+VERILOG_FILES += $(LIB)/wrapper/bram.v
 
 SVFFILE = vhdl_blink.svf
 DEPENDENCIES = lib/ecp5um-std93.cf
