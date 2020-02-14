@@ -27,7 +27,7 @@ VERILOG_FILES = $(LIB)/wrapper/primitives.v
 VERILOG_FILES += $(LIB)/wrapper/wrapper.v
 VERILOG_FILES += $(LIB)/wrapper/bram.v
 
-SVFFILE = vhdl_blink.svf
+SVFFILE = versa_ecp5_top.svf
 DEPENDENCIES = lib/ecp5um-std93.cf
 
 all: $(SVFFILE)
@@ -45,7 +45,8 @@ lib/ecp5um-std93.cf: $(LIB)/ecp5u/components.vhdl | lib
 pll_mac.vhd: $(DEPENDENCIES) 
 
 prog: $(SVFFILE)
-	$(OPENOCD) -f $(OPENOCD_JTAG_CONFIG) -f $(OPENOCD_DEVICE_CONFIG) -c "transport select jtag; init; svf $<; exit"
+	$(OPENOCD) -f $(OPENOCD_JTAG_CONFIG) -f $(OPENOCD_DEVICE_CONFIG) \
+		-c "transport select jtag; init; svf $<; exit"
 
 clean:
 	rm -fr lib work *.json *.svf *.config *-report.txt

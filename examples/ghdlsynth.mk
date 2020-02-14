@@ -29,3 +29,6 @@ endif
 %.svf: %.config
 	$(ECPPACK) --svf $*.svf $< $@
 
+
+.PRECIOUS: %.json %.config
+	
