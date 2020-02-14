@@ -1,3 +1,6 @@
+// Workaround BRAM implementation for fifo buffer
+// 2020 <hackfin@section5.ch>
+
 module bram_2psync_6_8_59fe624214af9b8daa183282288d5eb56b321f14 #(
 	parameter DATA = 8,
 	parameter ADDR = 6
@@ -23,9 +26,6 @@ reg [DATA-1:0] mem [(2**ADDR)-1:0];
 reg [ADDR-1:0] addr_b;
 reg [ADDR-1:0] addr_a;
 
-
-// Note we got A/B ports swapped to support writing to ROM, for the
-// time being
 
 assign a_read = mem[addr_a];
 // assign b_read = mem[addr_b];

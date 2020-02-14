@@ -1,5 +1,6 @@
 -- Simple UART core implementation
 --
+-- <hackfin@section5.ch>
 
 library IEEE;
 use IEEE.std_logic_1164.all;
@@ -11,6 +12,7 @@ library work;
 entity uart_core is
 	generic (
 		FIFO_DEPTH : natural := 6;
+		-- Note: Currently ineffective. See library/wrappers/bram.v
 		SYN_RAMTYPE  : string  := "distributed"
 	);
 	port (
@@ -28,11 +30,6 @@ architecture behaviour of uart_core is
 
 	signal count16  : unsigned(4-1 downto 0) := (others => '0');
 	signal counter  : unsigned(16-1 downto 0) := (others => '0');
-
-	signal dbgcnt   : unsigned(16-1 downto 0) := (others => '0');
-	signal dbgcnt2   : unsigned(16-1 downto 0) := (others => '0');
-	-- signal debug   : unsigned(16-1 downto 0) := (others => '0');
-	-- signal debug2  : unsigned(16-1 downto 0) := (others => '0');
 
 	signal strobe_rx     : std_logic;
 	signal rxd           : unsigned(7 downto 0);
@@ -103,15 +100,6 @@ clkdiv:
 	rxfifo_rden <= ctrl.select_uart_rxr and rxdata_ready;
 	txfifo_wren <= ctrl.select_uart_txr;
 
--- transaction_delay:
--- 	process (clk)
--- 	begin
--- 		if rising_edge(clk) then
--- 			rxfifo_rden <= ctrl.select_uart_rxr;
--- 			txfifo_wren <= ctrl.select_uart_txr;
--- 		end if;
--- 	end process;
-
 uart_rx: entity work.UARTrx
 	port map (
 		d_bitcount       => stat.bitcount,
@@ -124,18 +112,6 @@ uart_rx: entity work.UARTrx
 		clk16en          => clk16_enable,
 		clk              => clk
 	);
-
--- 	process (clk)
--- 	begin
--- 		if rising_edge(clk) then
--- 			if strobe_rx = '1' then
--- 				dbgcnt <= dbgcnt + 1;
--- 			end if;
--- 			if ctrl.uart_reset = '1' then
--- 				dbgcnt2 <= dbgcnt2 + 1;
--- 			end if;
--- 		end if;
--- 	end process;
 
 uart_tx:
 	entity work.UARTtx
