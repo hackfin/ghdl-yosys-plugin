@@ -2,11 +2,12 @@
 
 # Specify:
 #
-# VHDL_SYN_FILES = VHDL files for synthesis, unordered
-# VERILOG_FILES = auxiliary verilog wrappers that might be needed
-# PLATFORM: 'ecp5' for now
-# TOPLEVEL: top level entity name
-# TOPLEVEL_PARAMETER: top level entity name parameters, when passed a generic
+# For a platform 'foo' this rule file expects variable definitions such as:
+#
+#
+# foo_GHDL_GENERICS = .. optional parameters
+# foo_PARAMETER = .. optional parameters
+#
 # LPF: I/O constraints file
 
 PLATFORM ?= ecp5
@@ -19,23 +20,27 @@ ifneq ($(SHOW_ENTITY),)
 MAYBE_SHOW = show $(SHOW_ENTITY);
 endif
 
-%.json: $(VHDL_SYN_FILES)
+# We add this to resolve more complexities below:
+.SECONDEXPANSION:
+
+%.json: $$($$*_VHDL_SYN_FILES)
+	echo $^
 	$(YOSYS) -m $(GHDLSYNTH) -p \
-		"ghdl $(GHDL_FLAGS) $(GHDL_GENERICS) $^ -e $(TOPLEVEL); \
+		"ghdl $(GHDL_FLAGS) $($*_GHDL_GENERICS) $^ -e $*; \
 		$(MAYBE_SHOW) \
 		$(MAYBE_READ_VERILOG) \
 		$(EXTRA_COMMANDS) \
 		synth_$(PLATFORM) \
-		-top $(TOPLEVEL)$(TOPLEVEL_PARAMETER) -json $@; \
+		-top $*$($*_PARAMETER) -json $@; \
 	" 2>&1 | tee $*-report.txt
 
 
-%.il: $(VHDL_SYN_FILES)
+%.il: $$($$*_VHDL_SYN_FILES)
 	$(YOSYS) -m $(GHDLSYNTH) -p \
-		"ghdl $(GHDL_FLAGS) $(GHDL_GENERICS) $^ -e $(TOPLEVEL); \
+		"ghdl $(GHDL_FLAGS) $($*_GHDL_GENERICS) $^ -e $*; \
 		$(MAYBE_READ_VERILOG) \
 		synth_$(PLATFORM) \
-		-top $(TOPLEVEL)$(TOPLEVEL_PARAMETER) ; \
+		-top $*$($*_PARAMETER) ; \
 		write_ilang $@ \
 		"
 
