@@ -15,12 +15,29 @@ ifneq ($(VERILOG_FILES),)
 MAYBE_READ_VERILOG = read_verilog $(VERILOG_FILES);
 endif
 
+ifneq ($(SHOW_ENTITY),)
+MAYBE_SHOW = show $(SHOW_ENTITY);
+endif
+
 %.json: $(VHDL_SYN_FILES)
+	$(YOSYS) -m $(GHDLSYNTH) -p \
+		"ghdl $(GHDL_FLAGS) $(GHDL_GENERICS) $^ -e $(TOPLEVEL); \
+		$(MAYBE_SHOW) \
+		$(MAYBE_READ_VERILOG) \
+		$(EXTRA_COMMANDS) \
+		synth_$(PLATFORM) \
+		-top $(TOPLEVEL)$(TOPLEVEL_PARAMETER) -json $@; \
+	" 2>&1 | tee $*-report.txt
+
+
+%.il: $(VHDL_SYN_FILES)
 	$(YOSYS) -m $(GHDLSYNTH) -p \
 		"ghdl $(GHDL_FLAGS) $(GHDL_GENERICS) $^ -e $(TOPLEVEL); \
 		$(MAYBE_READ_VERILOG) \
 		synth_$(PLATFORM) \
-		-top $(TOPLEVEL)$(TOPLEVEL_PARAMETER) -json $@" 2>&1 | tee $*-report.txt
+		-top $(TOPLEVEL)$(TOPLEVEL_PARAMETER) ; \
+		write_ilang $@ \
+		"
 
 %.config: %.json
 	$(NEXTPNR) --json $< --lpf $(LPF) \

@@ -24,8 +24,8 @@ entity versa_ecp5_top is
         CLK_FREQUENCY : positive := 25000000
     );
 	port (
-		twi_scl  : inout std_logic;
-		twi_sda  : inout std_logic;
+		-- twi_scl  : inout std_logic;
+		-- twi_sda  : inout std_logic;
 
 		rxd_uart    : in std_logic;	  -- FT2232 -> CPU
 		txd_uart    : out std_logic;  -- CPU    -> FT2232
@@ -131,6 +131,7 @@ clk_pll1: entity work.pll_mac
 
 uart_inst:
 	entity work.uart_core
+	generic map (FIFO_DEPTH => 12)
 	port map (
 		tx        => txd_uart,
 		rx        => rxd_uart,
@@ -152,8 +153,8 @@ uart_inst:
 	-- Note LED are low active
 	oled <= not std_logic_vector(led);
 
-	twi_sda <= 'H';
-	twi_scl <= 'H';
+	-- twi_sda <= 'H';
+	-- twi_scl <= 'H';
 
 
 	-- txd_uart   <= rxd_uart;
