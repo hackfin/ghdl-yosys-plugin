@@ -12,8 +12,7 @@ entity FifoBuffer is
 	generic (
 		ADDR_W          : natural := 6;
 		DATA_W          : natural := 16;
-		EXTRA_REGISTER  : boolean := false;
-		SYN_RAMTYPE     : string  := "block_ram"
+		EXTRA_REGISTER  : boolean := false
 	);
 	port (
 		-- Write enable
@@ -161,7 +160,7 @@ fsm:
 ram:
 	bram_2psync
 	generic map ( ADDR_W => ADDR_W, DATA_W => DATA_W,
-		SYN_RAMTYPE => SYN_RAMTYPE)
+		SYN_RAMTYPE => "distributed")
 	port map (
 		a_we    => '0',
 		a_addr  => optr,

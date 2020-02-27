@@ -1,0 +1,9 @@
+#This one is ok
+read_ilang versa_ecp5_top_init.il
+# This one fails
+#read_ilang versa_ecp5_top_noinit.il
+
+read_verilog ../../library/wrapper/bram.v
+read_verilog ../../library/wrapper/primitives.v
+read_verilog ../../library/wrapper/wrapper.v
+synth_ecp5 -json versa_ecp5_top.json

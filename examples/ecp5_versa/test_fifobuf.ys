@@ -1,0 +1,1 @@
+ghdl -Plib --std=93c -gDATA_W=8 -gADDR_W=12 fifobuf.vhdl -e fifobuffer

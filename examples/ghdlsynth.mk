@@ -39,6 +39,7 @@ endif
 	$(YOSYS) -m $(GHDLSYNTH) -p \
 		"ghdl $(GHDL_FLAGS) $($*_GHDL_GENERICS) $^ -e $*; \
 		$(MAYBE_READ_VERILOG) \
+		$(EXTRA_COMMANDS) \
 		synth_$(PLATFORM) \
 		-top $*$($*_PARAMETER) ; \
 		write_ilang $@ \

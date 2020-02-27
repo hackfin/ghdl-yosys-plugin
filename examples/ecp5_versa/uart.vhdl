@@ -13,7 +13,7 @@ entity uart_core is
 	generic (
 		FIFO_DEPTH : natural := 6;
 		-- Note: Currently ineffective. See library/wrappers/bram.v
-		SYN_RAMTYPE  : string  := "distributed"
+		SYN_RAMTYPE  : string  := "block_ram"
 	);
 	port (
 		tx        : out std_logic;
@@ -52,8 +52,7 @@ architecture behaviour of uart_core is
 		generic (
 			ADDR_W          : natural := 6;
 			DATA_W          : natural := 16;
-			EXTRA_REGISTER  : boolean := false;
-			SYN_RAMTYPE     : string  := "block_ram"
+			EXTRA_REGISTER  : boolean := false
 		);
 		port (
 			-- Write enable
@@ -131,8 +130,7 @@ rxfifo:
 	FifoBuffer
 	generic map (
 		DATA_W => 8,
-		ADDR_W => FIFO_DEPTH,
-		SYN_RAMTYPE => SYN_RAMTYPE
+		ADDR_W => FIFO_DEPTH
 	)
 	port map (
 		wren      => strobe_rx,
@@ -155,8 +153,7 @@ txfifo:
 	FifoBuffer
 	generic map (
 		DATA_W => 8,
-		ADDR_W => FIFO_DEPTH,
-		SYN_RAMTYPE => SYN_RAMTYPE
+		ADDR_W => FIFO_DEPTH
 	)
 	port map (
 		wren      => txfifo_wren,
