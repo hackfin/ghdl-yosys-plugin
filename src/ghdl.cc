@@ -278,23 +278,27 @@ static void import_memory(RTLIL::Module *module, std::vector<RTLIL::Wire *> &net
 	unsigned abits = 0;
 	for (Input port = first_port; ;) {
 		Instance port_inst = get_input_parent(port);
+		log("Port id %d\n", port.id);
 		Net addr;
 		Net dat;
 		switch(get_id(port_inst)) {
 		case Id_Mem_Rd:
-                case Id_Mem_Rd_Sync:
+		case Id_Mem_Rd_Sync:
 			dat = get_output(port_inst, 1);
 			addr = get_input_net(port_inst, 1);
+			log("COUNT Read port %d\n", port.id);
 			nbr_rd++;
 			break;
 		case Id_Mem_Wr_Sync:
 			dat = get_input_net(port_inst, 4);
 			addr = get_input_net(port_inst, 1);
+			log("COUNT Write port %d\n", port.id);
 			nbr_wr++;
 			break;
 		case Id_Memory:
 		case Id_Memory_Init:
-		        port.id = 0;
+			log("Memory, done %d\n", port.id);
+			port.id = 0;
 			break;
 		default:
 			log_assert(0);
@@ -310,7 +314,9 @@ static void import_memory(RTLIL::Module *module, std::vector<RTLIL::Wire *> &net
 			log_assert(width == get_width(dat));
 			log_assert(abits == get_width(addr));
 		}
-		port = get_first_sink(get_output(port_inst,  0));
+
+		port = get_first_sink(get_output(port_inst, 0));
+
 	}
 
 	unsigned size = get_width(mem_o) / width;
@@ -355,22 +361,32 @@ static void import_memory(RTLIL::Module *module, std::vector<RTLIL::Wire *> &net
 		Instance port_inst = get_input_parent(port);
 #define IN(N) get_src(net_map, get_input_net(port_inst, (N)))
 #define OUT(N) get_src(net_map, get_output(port_inst, (N)))
+
+		{
+			std::string s;
+			s = to_str(get_instance_name(port_inst));
+			log(" in %s\n", s.c_str());
+		}
+
 		switch(get_id(port_inst)) {
 		case Id_Mem_Rd:
+			log("Mem Rd \n");
 			rd_clk_en.push_back(RTLIL::State::S0);
 			rd_clk.append(RTLIL::State::Sx);
 			rd_addr.append(IN(1));
 			rd_data.append(OUT(1));
 			rd_en.append(Const(1, 1));
 			break;
-                case Id_Mem_Rd_Sync:
-                        rd_clk_en.push_back(RTLIL::State::S1);
-                        rd_clk.append(IN(2));
+		case Id_Mem_Rd_Sync:
+			log("Mem Rd_Sync \n");
+			rd_clk_en.push_back(RTLIL::State::S1);
+			rd_clk.append(IN(2));
 			rd_addr.append(IN(1));
 			rd_data.append(OUT(1));
 			rd_en.append(IN(3));
 			break;
 		case Id_Mem_Wr_Sync:
+			log("Mem Wr_Sync \n");
 			wr_clk.append(IN(2));
 			wr_addr.append(IN(1));
 			wr_data.append(IN(4));

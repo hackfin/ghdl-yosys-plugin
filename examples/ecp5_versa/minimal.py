@@ -170,8 +170,14 @@ def simulate(tb):
 	tb.run_sim(100000)
 
 
+def generate():
+	pa, pb = [ DPport(12, 8) for i in range(2) ]
+	ram_inst = dual_raw_v1(None, pa, pb)
+	ram_inst.convert("VHDL")
+
 tb = test_top()
 # tb.convert("VHDL")
 
 #convert()
-simulate(tb)
+generate()
+# simulate(tb)

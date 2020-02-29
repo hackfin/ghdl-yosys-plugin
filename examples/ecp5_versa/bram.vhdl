@@ -43,7 +43,7 @@ begin
         if b_we = '1' then
             mem(to_integer(b_addr)) <= b_write;
         end if;
-        -- b_read <= mem(to_integer(a_addr));
+        b_read <= mem(to_integer(a_addr));
     end if;
 end process portb_proc;
 

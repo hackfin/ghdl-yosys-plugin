@@ -26,10 +26,12 @@ WORKDIR = work
 top_VHDL_SYN_FILES = pck_myhdl_011.vhd top.vhd
 
 # 'versa_ecp5_top' setup:
-versa_ecp5_top_GHDL_GENERICS =-gCLK_FREQUENCY=$(CLK_FREQ)
-versa_ecp5_top_PARAMETER = _$(CLK_FREQ)
 
 TOP = versa_ecp5_top
+
+$(TOP)_GHDL_GENERICS =-gCLK_FREQUENCY=$(CLK_FREQ)
+$(TOP)_PARAMETER = _$(CLK_FREQ)
+
 $(TOP)_VHDL_SYN_FILES = $(TOP).vhdl pll_mac.vhd
 $(TOP)_VHDL_SYN_FILES += soc_iomap_pkg.vhdl
 ifdef USE_BRAM_VHDL
