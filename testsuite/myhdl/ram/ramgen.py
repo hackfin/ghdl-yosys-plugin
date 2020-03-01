@@ -10,24 +10,13 @@ LICENSE: GPL v2
 """
 
 from myhdl import *
-import os
 import subprocess
 
-HOME = os.environ['HOME']
-# Local MyHDL checkout:
-MYHDL_COSIMULATION = HOME + "/src/myhdl/cosimulation/icarus"
-# The icarus verilog prefix:
-IVL_PREFIX = "/usr"
-# Where ECP cell simulation libs are found:
-ECP5_LIB = "/usr/local/share/yosys/ecp5"
+import sys
+sys.path.append("..")
 
-try:
-	from config import *
-except ImportError:
-	pass
+from ivl_cosim import *
 
-IVL_MODULE_PATH_ARGS = [ '-M', IVL_PREFIX + '/lib/ivl' ]
-LIBFILES = [ ECP5_LIB + "/cells_sim.v", "-I", ECP5_LIB]
 
 class DPport:
 	def __init__(self, awidth, dwidth):
@@ -37,29 +26,6 @@ class DPport:
 		self.addr = Signal(modbv()[awidth:])
 		self.write = Signal(modbv()[dwidth:])
 		self.read = Signal(modbv()[dwidth:])
-
-def setupCosimulationIcarus(**kwargs):
-	try:
-		libfiles = kwargs['libfiles']
-	except KeyError:
-		libfiles = ""
-	
-
-	name = kwargs['name']
-	objfile = "%s.o" % name
-	if os.path.exists(objfile):
-	    os.remove(objfile)
-	analyze_cmd = ['iverilog' ]
-	analyze_cmd += [ '-P', 'tb_%s.ADDR_W=%d' % (name, len(kwargs['a_addr'])) ]
-	analyze_cmd += ['-s', "tb_" + name]
-	analyze_cmd += ['-o', objfile, '%s.v' %name, 'tb_%s.v' % name]
-	analyze_cmd += libfiles
-	print analyze_cmd
-	subprocess.call(analyze_cmd)
-	simulate_cmd = ['vvp', '-m', MYHDL_COSIMULATION + '/myhdl.vpi']
-	simulate_cmd += IVL_MODULE_PATH_ARGS
-	simulate_cmd += [objfile]
-	return Cosimulation(simulate_cmd, **kwargs)
 
 
 @block
@@ -138,7 +104,8 @@ def dpram_test(a, b, ent, CLKMODE, HEXFILE = False, verify = False):
 
 @block
 def ram_v(name, a, b, HEXFILE):
-	return setupCosimulationIcarus(name=name, a_clk=a.clk, a_ce=a.ce, a_we=a.we,  a_addr=a.addr, a_read=a.read, a_write=a.write, b_clk=b.clk, b_ce=b.ce, b_we=b.we, b_addr=b.addr, b_read=b.read, b_write=b.write)
+	params = { }
+	return setupCosimulationIcarus(params, name=name, a_clk=a.clk, a_ce=a.ce, a_we=a.we,  a_addr=a.addr, a_read=a.read, a_write=a.write, b_clk=b.clk, b_ce=b.ce, b_we=b.we, b_addr=b.addr, b_read=b.read, b_write=b.write)
 
 
 @block
@@ -150,11 +117,13 @@ def ram_mapped_vhdl(name, a, b, HEXFILE = False):
  	"""ghdl pck_myhdl_011.vhd %s.vhd -e %s;
 		show -prefix %s;
 		synth_ecp5;
+		show -prefix %s;
 		write_verilog %s.v
- 	""" % (name, name, name, mapped)]
+ 	""" % (name, name, name, mapped, mapped)]
  	subprocess.call(map_cmd)
+	params = { 'ADDR_W' : len(a.addr) }
 
-	return setupCosimulationIcarus(name=mapped, libfiles=LIBFILES, a_clk=a.clk, a_ce=a.ce, a_we=a.we,  a_addr=a.addr, a_read=a.read, a_write=a.write, b_clk=b.clk, b_ce=b.ce, b_we=b.we, b_addr=b.addr, b_read=b.read, b_write=b.write)
+	return setupCosimulationIcarus(params, name=mapped, libfiles=LIBFILES, a_clk=a.clk, a_ce=a.ce, a_we=a.we,  a_addr=a.addr, a_read=a.read, a_write=a.write, b_clk=b.clk, b_ce=b.ce, b_we=b.we, b_addr=b.addr, b_read=b.read, b_write=b.write)
 	
 @block
 def clkgen(clka, clkb, DELAY_A, DELAY_B):
@@ -184,6 +153,45 @@ def clkgen(clka, clkb, DELAY_A, DELAY_B):
 ############################################################################
 # LIBRARY
 #
+
+@block
+def dpram_r1w1(a, b, HEXFILE = None, USE_CE = False):
+	"Synthesizing one read one write port DPRAM, synchronous read b4 write"
+	mem = [Signal(modbv(0)[len(a.read):]) for i in range(2 ** len(a.addr))]
+
+	if HEXFILE:
+		init_inst = meminit(mem, HEXFILE)
+
+	if USE_CE:
+		@always(a.clk.posedge)
+		def porta_proc():
+			if a.ce:
+				if a.we:
+					if __debug__:
+						print "Writing to ", a.addr
+					mem[a.addr].next = a.write
+
+		@always(b.clk.posedge)
+		def portb_proc():
+			if b.ce:
+				b.read.next = mem[b.addr]
+	else:
+		@always(a.clk.posedge)
+		def porta_proc():
+			if a.we:
+				if __debug__:
+					print "Writing to ", a.addr
+				mem[a.addr].next = a.write
+
+		@always(b.clk.posedge)
+		def portb_proc():
+			b.read.next = mem[b.addr]
+
+
+	return instances()
+
+
+
 @block
 def dpram_r2w1(a, b, HEXFILE = False, USE_CE = False):
 	"Synthesizing two read one write port DPRAM, synchronous read b4 write"
@@ -195,7 +203,7 @@ def dpram_r2w1(a, b, HEXFILE = False, USE_CE = False):
 	if USE_CE:
 		@always(a.clk.posedge)
 		def porta_proc():
-			if cea:
+			if a.ce:
 				if a.we:
 					if __debug__:
 						print "Writing to ", a.addr
@@ -205,7 +213,7 @@ def dpram_r2w1(a, b, HEXFILE = False, USE_CE = False):
 
 		@always(b.clk.posedge)
 		def portb_proc():
-			if ceb:
+			if b.ce:
 				b.read.next = mem[b.addr]
 	else:
 		@always(a.clk.posedge)
@@ -271,12 +279,12 @@ def dpram_tb(ent, ent_v, CLKMODE, HEXFILE, verify, addrbits):
 
 	# Both port clocks the same:
 
-	ram_tdp = ent(a, b, HEXFILE)
 	if ent_v:
-		ram_tdp.convert("VHDL", name=ent.__name__)
-		# Note: Trace can be flaky in cosimulation. Don't trust it.
-		ram_tdp.convert("Verilog", name=ent.__name__, trace=True)
+		# Note: Trace can be flaky when using the wrong verilog version
+		# Use a very recent release with MyHDL VPI support.
 		ram_tdp_v = ent_v(ent.__name__, a, b, HEXFILE)
+	else:
+		ram_tdp = ent(a, b, HEXFILE)
 
  
 	inst_clkgen = clkgen(a.clk, b.clk, 10, 11)
@@ -284,21 +292,26 @@ def dpram_tb(ent, ent_v, CLKMODE, HEXFILE, verify, addrbits):
 
 	return instances()
 
-def convert():
-	a = DPport(12, 16)
-	b = DPport(12, 16)
+def convert(addrbits):
 	# d = dpram16_init(a, b)
 
-	RAM_LIST = [ dpram_r2w1, dpram_r2w1_wt]
+	RAM_LIST = [ dpram_r1w1, dpram_r2w1, dpram_r2w1_wt]
 
 	for ent in RAM_LIST:
+		a = DPport(addrbits, 16)
+		b = DPport(addrbits, 16)
+
 		dp = dpram_test(a, b, ent, False, False)
 		s = "test_" + ent.__name__
 		dp.convert("VHDL", name=s)
 		dp.convert("Verilog", name=s)
 
-	test_init = dpram_r2w1(a, b, "../sw/bootrom_l.hex")
-	test_init.convert("VHDL")
+		e = ent(a, b)
+		e.convert("VHDL", name=ent.__name__)
+		e.convert("Verilog", name=ent.__name__)
+
+	# test_init = dpram_r2w1(a, b, "../sw/bootrom_l.hex")
+	# test_init.convert("VHDL")
 	# test_init.convert("Verilog")
 
 def testbench(which, verify, MODE=0, ADDRBITS=6):
@@ -317,11 +330,8 @@ def testbench(which, verify, MODE=0, ADDRBITS=6):
 
 	tb = dpram_tb(which, r, False, False, verify, ADDRBITS)
 	# tb.convert("Verilog", name="tb")
-	if r == None:
-		tb.config_sim(backend = 'myhdl', trace=True)
-	else:
-		tb.config_sim(backend = 'myhdl')
+	tb.config_sim(backend = 'myhdl', trace=True)
 	tb.run_sim(20000)
 
 if __name__ == '__main__':
-	convert()
+	convert(7)

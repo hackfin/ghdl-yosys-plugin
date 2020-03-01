@@ -10,33 +10,9 @@ to synthesize using GHDL and is tested against the synthesized result.
 
 """
 
-IMPLEMENTED = 1
+IMPLEMENTED = 2
 
 from ramgen import *
-
-@block
-def dpram_r1w1(a, b, HEXFILE = None):
-	"Synthesizing one read one write port DPRAM, synchronous read b4 write"
-	mem = [Signal(modbv(0)[len(a.read):]) for i in range(2 ** len(a.addr))]
-
-	if HEXFILE:
-		init_inst = meminit(mem, HEXFILE)
-
-	@always(a.clk.posedge)
-	def porta_proc():
-		if a.ce:
-			if a.we:
-				if __debug__:
-					print "Writing to ", a.addr
-				mem[a.addr].next = a.write
-
-	@always(b.clk.posedge)
-	def portb_proc():
-		if b.ce:
-			b.read.next = mem[b.addr]
-
-
-	return instances()
 
 @block
 def dpram_r1w1_verify(a, b):

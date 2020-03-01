@@ -27,19 +27,19 @@ reg [ADDR-1:0] addr_b;
 reg [ADDR-1:0] addr_a;
 
 
-assign a_read = mem[addr_a];
-// assign b_read = mem[addr_b];
+// assign a_read = mem[addr_a];
+assign b_read = mem[addr_b];
 
-always @(posedge clk) begin: DUAL_RAW_PORT_A_PROC
+always @(posedge clk) begin: proc_a_write
     addr_a <= a_addr;
+    if (a_we) begin
+        mem[a_addr] <= a_write;
+    end
 end
 
 
-always @(posedge clk) begin: DUAL_RAW_PORT_B_PROC
+always @(posedge clk) begin: proc_b_read
     addr_b <= b_addr;
-    if (b_we) begin
-        mem[b_addr] <= b_write;
-    end
 end
 
 

@@ -4,10 +4,10 @@
 
 WORKDIR ?= work
 
-%.vhd: %.py
+test_%.vhd: %.py
 	python $<
 
-test_%.vhd: ramgen.py
+%.vhd: ramgen.py
 	python $<
 
 pck_myhdl_011.vhd: ramgen.py
@@ -19,7 +19,7 @@ syn-%.vhd: %.vhd pck_myhdl_011.vhd
 DUTIES = syn-test_dpram_r2w1.vhd
 
 # Entities to include in the test:
-TEST_ENTITIES = dpram_r2w1 dpram_r2w1_wt dpram_r2w1_raw
+TEST_ENTITIES = dpram_r1w1 dpram_r2w1 dpram_r2w1_wt dpram_r2w1_raw
 
 GHDL ?= ghdl
 
@@ -66,6 +66,9 @@ check:  $(ENTITIES:%=%.json)
 	done
 
 test: $(TEST_ENTITIES:%=%.vhd)
+	for i in $(TEST_ENTITIES); do \
+		python $$i.py; \
+	done
 
 .PHONY: test
 
