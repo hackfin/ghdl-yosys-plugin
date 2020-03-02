@@ -10,7 +10,7 @@ to synthesize using GHDL and is tested against the synthesized result.
 
 """
 
-IMPLEMENTED = 2
+IMPLEMENTED = 1
 
 from ramgen import *
 

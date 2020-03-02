@@ -6,41 +6,17 @@ module bram_2psync_12_8_59fe624214af9b8daa183282288d5eb56b321f14 #(
 	parameter ADDR = 12
 ) (
 
-	// Port A
-	input	wire				clk,
-	input	wire				a_we,
-	input	wire	[ADDR-1:0]	a_addr,
-	input	wire	[DATA-1:0]	a_write,
-	output	reg		[DATA-1:0]	a_read,
-
-	// Port B
-	input	wire				b_we,
-	input	wire	[ADDR-1:0]	b_addr,
-	input	wire	[DATA-1:0]	b_write,
-	output	reg		[DATA-1:0]	b_read
-);
-
-// Shared memory
-reg [DATA-1:0] mem [(2**ADDR)-1:0];
-
-reg [ADDR-1:0] addr_b;
-reg [ADDR-1:0] addr_a;
+`include "bram.vh"
 
 
-// assign a_read = mem[addr_a];
-assign b_read = mem[addr_b];
+endmodule
 
-always @(posedge clk) begin: proc_a_write
-    addr_a <= a_addr;
-    if (a_we) begin
-        mem[a_addr] <= a_write;
-    end
-end
+module bram_2psync_6_8_59fe624214af9b8daa183282288d5eb56b321f14 #(
+	parameter DATA = 8,
+	parameter ADDR = 12
+) (
 
-
-always @(posedge clk) begin: proc_b_read
-    addr_b <= b_addr;
-end
+`include "bram.vh"
 
 
 endmodule

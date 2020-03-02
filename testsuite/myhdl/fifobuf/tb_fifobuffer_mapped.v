@@ -36,7 +36,7 @@ initial begin
     $dumpvars;
 end
 
-fifobuffer_12_8_0 dut(
+fifobuffer_6_8_0 dut(
     wren,
     idata,
     rden,

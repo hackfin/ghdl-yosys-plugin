@@ -15,7 +15,7 @@ def fifobuf_mapped(wren, idata, iready, odata, oready, rden, err, reset, clk):
 
  	map_cmd = ['yosys', '-m', 'ghdl',
  	'-p',
- 	"""ghdl -gADDR_W=12 -gDATA_W=8 %s.vhdl -e %s;
+ 	"""ghdl -gADDR_W=6 -gDATA_W=8 %s.vhdl -e %s;
 		show -prefix %s;
 		read_verilog ../../../library/wrapper/bram.v;
 		synth_ecp5;
@@ -89,8 +89,7 @@ def fifobuf_tb():
 	def testbench_drain():
 		yield oready.posedge
 
-
-		while 1:
+		for d in [ 0xde, 0xad, 0xbe, 0xef, 0xff, 0x20 ]:
 			while oready == 1:
 				yield clk.negedge
 				rden.next = 1
@@ -98,6 +97,8 @@ def fifobuf_tb():
 				rden.next = 0
 				yield clk.posedge
 				print "Data", odata
+				if odata != d:
+					raise ValueError, "Data mismatch"
 				count.next = count + 1
 			yield delay(10)
 

@@ -131,7 +131,7 @@ clk_pll1: entity work.pll_mac
 
 uart_inst:
 	entity work.uart_core
-	generic map (FIFO_DEPTH => 12)
+	generic map (FIFO_DEPTH => 6)
 	port map (
 		tx        => txd_uart,
 		rx        => rxd_uart,
