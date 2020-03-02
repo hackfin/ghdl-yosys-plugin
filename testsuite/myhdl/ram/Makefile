@@ -5,13 +5,7 @@
 WORKDIR ?= work
 
 test_%.vhd: %.py
-	python $<
-
-%.vhd: ramgen.py
-	python $<
-
-pck_myhdl_011.vhd: ramgen.py
-	python $<
+	python $< -c
 
 syn-%.vhd: %.vhd pck_myhdl_011.vhd
 	ghdl --synth --std=08 $^ -e $* >$@
@@ -65,8 +59,9 @@ check:  $(ENTITIES:%=%.json)
 		fi; \
 	done
 
-test: $(TEST_ENTITIES:%=%.vhd)
-	for i in $(TEST_ENTITIES); do \
+test:
+	@for i in $(TEST_ENTITIES); do \
+		echo Running test for $$i; \
 		python $$i.py; \
 	done
 

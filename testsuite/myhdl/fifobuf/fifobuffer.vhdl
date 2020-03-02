@@ -47,9 +47,9 @@ architecture behaviour of FifoBuffer is
 	type state_t is (S_IDLE, S_READY, S_FULL, S_ERROR);
 	-- GHDLSYNTH_QUIRK
 	-- Needs this initialized, otherwise gets 'optimized away'
-	-- signal state : state_t := S_IDLE;
+	signal state : state_t := S_IDLE;
 	-- If we don't initialize, yosys feels like it wants to recode.
-	signal state : state_t;
+	-- signal state : state_t;
 
 	signal int_full      : std_logic; -- Internal "full" flag
 	signal int_rden      : std_logic;

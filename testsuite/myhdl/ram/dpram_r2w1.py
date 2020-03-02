@@ -68,5 +68,6 @@ def dpram_r2w1_verify(a, b):
 	return instances()
 
 # Make sure to use a minimum of 7 address bits to map to a
-# DP16KD primitive
-testbench(dpram_r2w1, dpram_r2w1_verify, IMPLEMENTED, 7)
+# DP16KD primitive. Otherwise, TRELLIS DPR16X are emitted.
+
+run(dpram_r2w1, dpram_r2w1_verify, IMPLEMENTED, 7)

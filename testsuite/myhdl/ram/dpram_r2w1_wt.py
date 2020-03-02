@@ -67,4 +67,4 @@ def dpram_r2w1_verify(a, b):
 
 	return instances()
 
-testbench(dpram_r2w1_wt, dpram_r2w1_verify, IMPLEMENTED, 7)
+run(dpram_r2w1_wt, dpram_r2w1_verify, IMPLEMENTED, 7)

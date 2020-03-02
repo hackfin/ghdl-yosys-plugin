@@ -292,23 +292,21 @@ def dpram_tb(ent, ent_v, CLKMODE, HEXFILE, verify, addrbits):
 
 	return instances()
 
-def convert(addrbits):
+def convert(which, MODE, addrbits):
 	# d = dpram16_init(a, b)
 
-	RAM_LIST = [ dpram_r1w1, dpram_r2w1, dpram_r2w1_wt]
+	a = DPport(addrbits, 16)
+	b = DPport(addrbits, 16)
 
-	for ent in RAM_LIST:
-		a = DPport(addrbits, 16)
-		b = DPport(addrbits, 16)
+	# Test bench currently not used
+#	dp = dpram_test(a, b, which, MODE, False)
+#	s = "test_" + which.__name__
+#	dp.convert("VHDL", name=s)
+#	dp.convert("Verilog", name=s)
 
-		dp = dpram_test(a, b, ent, False, False)
-		s = "test_" + ent.__name__
-		dp.convert("VHDL", name=s)
-		dp.convert("Verilog", name=s)
-
-		e = ent(a, b)
-		e.convert("VHDL", name=ent.__name__)
-		e.convert("Verilog", name=ent.__name__)
+	e = which(a, b)
+	e.convert("VHDL", name=which.__name__)
+	e.convert("Verilog", name=which.__name__)
 
 	# test_init = dpram_r2w1(a, b, "../sw/bootrom_l.hex")
 	# test_init.convert("VHDL")
@@ -333,5 +331,14 @@ def testbench(which, verify, MODE=0, ADDRBITS=6):
 	tb.config_sim(backend = 'myhdl', trace=True)
 	tb.run_sim(20000)
 
-if __name__ == '__main__':
-	convert(7)
+
+def run(which, verify, MODE=0, ADDRBITS=6):
+	import sys
+	if len(sys.argv) > 1:
+		if sys.argv[1] == '-c':
+			convert(which, MODE, ADDRBITS)
+		else:
+			raise ValueError, "Invalid argument"
+	else:
+		convert(which, MODE, ADDRBITS)
+		testbench(which, verify, MODE, ADDRBITS)

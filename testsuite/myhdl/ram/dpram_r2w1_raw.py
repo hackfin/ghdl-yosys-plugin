@@ -17,7 +17,7 @@ IMPLEMENTED = 0
 from ramgen import *
 
 @block
-def dpram_r2w1_raw(a, b, HEXFILE):
+def dpram_r2w1_raw(a, b, HEXFILE = False):
 	"""Synthesizes for ECP5_DP16KD in Verilog, but not in VHDL"""
 	mem = [Signal(modbv(0)[len(a.read):]) for i in range(2 ** len(a.addr))]
 	addr_a, addr_b = [ Signal(modbv(0)[len(a.addr):]) for i in range(2) ]
@@ -51,6 +51,7 @@ def dpram_r2w1_raw_verify(a, b):
 	def stim():
 		a.ce.next = 1
 		b.ce.next = 1
+
 		a.addr.next = 0
 		b.addr.next = -1
 		a.write.next = 0x2000
@@ -87,4 +88,4 @@ def dpram_r2w1_raw_verify(a, b):
 
 # Make sure to use a minimum of 7 address bits to map to a
 # DP16KD primitive
-testbench(dpram_r2w1_raw, dpram_r2w1_raw_verify, IMPLEMENTED, 7)
+run(dpram_r2w1_raw, dpram_r2w1_raw_verify, IMPLEMENTED, 7)

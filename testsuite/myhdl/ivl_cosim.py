@@ -19,6 +19,12 @@ except ImportError:
 IVL_MODULE_PATH_ARGS = [ '-M', IVL_PREFIX + '/lib/ivl' ]
 LIBFILES = [ ECP5_LIB + "/cells_sim.v", "-I", ECP5_LIB]
 
+# If we simulate vendor libs, we might need this one:
+try:
+	LIBFILES += [ ECP5_LIB + "/gsr_pur_assign.v"]
+except:
+	pass
+
 def setupCosimulationIcarus(paramdict, **kwargs):
 	try:
 		libfiles = kwargs['libfiles']
@@ -33,6 +39,7 @@ def setupCosimulationIcarus(paramdict, **kwargs):
 
 	analyze_cmd = ['iverilog' ]
 	analyze_cmd += ['-s', "tb_" + name]
+	analyze_cmd += ['-D', "mixed_hdl"]
 	
 	for p in paramdict.keys():
 		analyze_cmd += [ '-P', 'tb_%s.%s=%s' % (name, p, paramdict[p]) ]
