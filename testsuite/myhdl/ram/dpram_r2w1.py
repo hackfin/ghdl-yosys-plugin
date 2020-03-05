@@ -11,7 +11,7 @@ to synthesize using GHDL and is tested against the synthesized result.
 """
 
 # 2: Cosimulation test only
-IMPLEMENTED = 1
+IMPLEMENTED = 3
 
 from ramgen import *
 
@@ -34,14 +34,14 @@ def dpram_r2w1_verify(a, b):
 	
 			# On read-after-write, data can not yet be ready on port A:
 			if a.read == 0xface:
-				raise ValueError, "Mismatch (transparent) A / 0"
+				raise ValueError("Mismatch (transparent) A / 0")
 
 			b.addr.next = i
 			# Data is ready on port B:
 			yield b.clk.posedge
 			yield b.clk.posedge
 			if b.read != 0xface:
-				raise ValueError, "Mismatch B / 1"
+				raise ValueError("Mismatch B / 1")
 
 			yield a.clk.posedge
 			a.addr.next = i
@@ -53,17 +53,17 @@ def dpram_r2w1_verify(a, b):
 	
 			# On read-after-write, data can not yet be ready on port A:
 			if a.read == 0xdead:
-				raise ValueError, "Mismatch (transparent) A / 1"
+				raise ValueError("Mismatch (transparent) A / 1")
 
 			b.addr.next = i
 			# Data is ready on port B:
 			yield b.clk.posedge
 			yield b.clk.posedge
 			if b.read != 0xdead:
-				raise ValueError, "Mismatch B / 2"
+				raise ValueError("Mismatch B / 2")
 
 
-		print "Simulation Done"
+		print("Simulation Done")
 
 	return instances()
 

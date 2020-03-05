@@ -16,7 +16,7 @@ import sys
 sys.path.append("..")
 
 from ivl_cosim import *
-
+import ram_mapper
 
 class DPport:
 	def __init__(self, awidth, dwidth):
@@ -26,6 +26,8 @@ class DPport:
 		self.addr = Signal(modbv()[awidth:])
 		self.write = Signal(modbv()[dwidth:])
 		self.read = Signal(modbv()[dwidth:])
+		# Low/high select:
+		self.sel = [ Signal(bool()) for i in range(2) ]
 
 
 @block
@@ -112,18 +114,31 @@ def ram_v(name, a, b, HEXFILE):
 def ram_mapped_vhdl(name, a, b, HEXFILE = False):
 	mapped = name + "_mapped"
 
- 	map_cmd = ['yosys', '-m', 'ghdl',
- 	'-p',
- 	"""ghdl pck_myhdl_011.vhd %s.vhd -e %s;
+	map_cmd = ['yosys', '-m', 'ghdl',
+		'-p',
+		"""ghdl pck_myhdl_011.vhd %s.vhd -e %s;
 		show -prefix %s;
 		synth_ecp5;
 		show -prefix %s;
 		write_verilog %s.v
  	""" % (name, name, name, mapped, mapped)]
- 	subprocess.call(map_cmd)
+	subprocess.call(map_cmd)
 	params = { 'ADDR_W' : len(a.addr) }
 
 	return setupCosimulationIcarus(params, name=mapped, libfiles=LIBFILES, a_clk=a.clk, a_ce=a.ce, a_we=a.we,  a_addr=a.addr, a_read=a.read, a_write=a.write, b_clk=b.clk, b_ce=b.ce, b_we=b.we, b_addr=b.addr, b_read=b.read, b_write=b.write)
+
+
+def ram_mapped_myhdl(name, a, b, HEXFILE = False):
+	mapped = name + "_mapped"
+
+	files = "%s.vhd pck_myhdl_011.vhd" % name
+	top =  name
+	ram_mapper.yosys_dpram_mapper(XHDL_PLUGIN, files, top, mapped)
+
+	params = { 'ADDR_W' : len(a.addr) }
+
+	return setupCosimulationIcarus(params, name=mapped, libfiles=LIBFILES, a_clk=a.clk, a_ce=a.ce, a_we=a.we,  a_addr=a.addr, a_read=a.read, a_write=a.write, b_clk=b.clk, b_ce=b.ce, b_we=b.we, b_addr=b.addr, b_read=b.read, b_write=b.write)
+	
 	
 @block
 def clkgen(clka, clkb, DELAY_A, DELAY_B):
@@ -168,7 +183,7 @@ def dpram_r1w1(a, b, HEXFILE = None, USE_CE = False):
 			if a.ce:
 				if a.we:
 					if __debug__:
-						print "Writing to ", a.addr
+						print("Writing to ", a.addr)
 					mem[a.addr].next = a.write
 
 		@always(b.clk.posedge)
@@ -180,7 +195,7 @@ def dpram_r1w1(a, b, HEXFILE = None, USE_CE = False):
 		def porta_proc():
 			if a.we:
 				if __debug__:
-					print "Writing to ", a.addr
+					print("Writing to ", a.addr)
 				mem[a.addr].next = a.write
 
 		@always(b.clk.posedge)
@@ -206,7 +221,7 @@ def dpram_r2w1(a, b, HEXFILE = False, USE_CE = False):
 			if a.ce:
 				if a.we:
 					if __debug__:
-						print "Writing to ", a.addr
+						print("Writing to ", a.addr)
 					mem[a.addr].next = a.write
 				else:
 					a.read.next = mem[a.addr]
@@ -220,7 +235,7 @@ def dpram_r2w1(a, b, HEXFILE = False, USE_CE = False):
 		def porta_proc():
 			if a.we:
 				if __debug__:
-					print "Writing to ", a.addr
+					print("Writing to ", a.addr)
 				mem[a.addr].next = a.write
 			else:
 				a.read.next = mem[a.addr]
@@ -230,6 +245,7 @@ def dpram_r2w1(a, b, HEXFILE = False, USE_CE = False):
 			b.read.next = mem[b.addr]
 
 	return instances()
+
 
 @block
 def dpram_r2w1_wt(a, b, HEXFILE = False, USE_CE = False):
@@ -299,10 +315,10 @@ def convert(which, MODE, addrbits):
 	b = DPport(addrbits, 16)
 
 	# Test bench currently not used
-#	dp = dpram_test(a, b, which, MODE, False)
-#	s = "test_" + which.__name__
-#	dp.convert("VHDL", name=s)
-#	dp.convert("Verilog", name=s)
+	dp = dpram_test(a, b, which, MODE, False)
+	s = "test_" + which.__name__
+	dp.convert("VHDL", name=s)
+	dp.convert("Verilog", name=s)
 
 	e = which(a, b)
 	e.convert("VHDL", name=which.__name__)
@@ -321,6 +337,9 @@ def testbench(which, verify, MODE=0, ADDRBITS=6):
 	elif MODE == 2:
 		# Use translated Verilog model:
 		r = ram_v
+	elif MODE == 3:
+		# Translate using python based memory mapper via pyosys
+		r = ram_mapped_myhdl
 	else:
 		r = None
 
@@ -338,7 +357,7 @@ def run(which, verify, MODE=0, ADDRBITS=6):
 		if sys.argv[1] == '-c':
 			convert(which, MODE, ADDRBITS)
 		else:
-			raise ValueError, "Invalid argument"
+			raise ValueError("Invalid argument")
 	else:
 		convert(which, MODE, ADDRBITS)
 		testbench(which, verify, MODE, ADDRBITS)

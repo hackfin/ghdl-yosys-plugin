@@ -75,14 +75,14 @@ def dpram_r2w1_raw_verify(a, b):
 
 			# Must not yet be expected data
 			if b.read == 0x2000 + i - 1:
-				raise ValueError, "Mismatch B / 0"
+				raise ValueError("Mismatch B / 0")
 			yield b.clk.posedge
 			# Now must be expected data
 			if b.read != 0x2000 + i - 1:
-				raise ValueError, "Mismatch B / 1"
+				raise ValueError("Mismatch B / 1")
 
 
-		print "Simulation Done"
+		print("Simulation Done")
 
 	return instances()
 

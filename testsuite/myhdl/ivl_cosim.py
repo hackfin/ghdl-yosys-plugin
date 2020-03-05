@@ -46,7 +46,7 @@ def setupCosimulationIcarus(paramdict, **kwargs):
 
 	analyze_cmd += ['-o', objfile, '%s.v' %name, 'tb_%s.v' % name]
 	analyze_cmd += libfiles
-	print analyze_cmd
+	print(analyze_cmd)
 	subprocess.call(analyze_cmd)
 	simulate_cmd = ['vvp', '-m', MYHDL_COSIMULATION + '/myhdl.vpi']
 	simulate_cmd += IVL_MODULE_PATH_ARGS

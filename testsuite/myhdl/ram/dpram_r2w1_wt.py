@@ -37,12 +37,12 @@ def dpram_r2w1_verify(a, b):
 			a.we.next = 0
 
 			if a.read != 0xface:
-				raise ValueError, "Mismatch 'transparent' A / 0"
+				raise ValueError("Mismatch 'transparent' A / 0")
 
 			yield b.clk.posedge
 			yield b.clk.posedge
 			if b.read != 0xface:
-				raise ValueError, "Mismatch A -> B / 0"
+				raise ValueError("Mismatch A -> B / 0")
 
 		
 			yield a.clk.negedge
@@ -56,14 +56,14 @@ def dpram_r2w1_verify(a, b):
 			
 			# Read 'transparent' (writethrough):
 			if a.read != 0xdead:
-				raise ValueError, "Mismatch 'transparent' A / 1"
+				raise ValueError("Mismatch 'transparent' A / 1")
 
 			yield b.clk.posedge
 			yield b.clk.posedge
 			if b.read != 0xdead:
-				raise ValueError, "Mismatch A -> B / 1"
+				raise ValueError("Mismatch A -> B / 1")
 
-		print "Simulation Done"
+		print("Simulation Done")
 
 	return instances()
 

@@ -2,10 +2,12 @@
 #
 #
 
+PYTHON ?= python
+
 WORKDIR ?= work
 
 test_%.vhd: %.py
-	python $< -c
+	$(PYTHON) $< -c
 
 syn-%.vhd: %.vhd pck_myhdl_011.vhd
 	ghdl --synth --std=08 $^ -e $* >$@
@@ -62,7 +64,7 @@ check:  $(ENTITIES:%=%.json)
 test:
 	@for i in $(TEST_ENTITIES); do \
 		echo Running test for $$i; \
-		python $$i.py; \
+		$(PYTHON) $$i.py; \
 	done
 
 .PHONY: test

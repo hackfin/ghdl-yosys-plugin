@@ -37,7 +37,7 @@ def dpram_r1w1_verify(a, b):
 			yield b.clk.posedge
 			yield b.clk.posedge
 			if b.read != 0xface:
-				raise ValueError, "Mismatch B / 1"
+				raise ValueError("Mismatch B / 1")
 
 			yield a.clk.posedge
 			a.addr.next = i
@@ -52,10 +52,10 @@ def dpram_r1w1_verify(a, b):
 			yield b.clk.posedge
 			yield b.clk.posedge
 			if b.read != 0xdead:
-				raise ValueError, "Mismatch B / 2"
+				raise ValueError("Mismatch B / 2")
 
 
-		print "Simulation Done"
+		print("Simulation Done")
 
 	return instances()
 
