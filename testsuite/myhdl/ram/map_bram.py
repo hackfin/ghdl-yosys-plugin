@@ -151,13 +151,13 @@ def map_cell(cell, portmaps, interface):
 		print(sigs)
 
 		if flags & RO:
-			netlist[ portid + "CE"] = [sigs[i], 'in']
+			netlist[ portid + "RE"] = [sigs[i], 'in']
 			i += 1
 			dprams.extend(sigs[i], new_dwidth)
 			netlist[ portid + "READ"] = [sigs[i], 'out']
 			i += 1
 		else:
-			netlist[ portid + "CE"] = [ "0", 'in' ]
+			netlist[ portid + "RE"] = [ "0", 'in' ]
 			netlist[ portid + "READ"] = UNDEFINED(new_dwidth)
 
 		if flags & WO:

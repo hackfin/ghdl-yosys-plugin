@@ -15,6 +15,7 @@ LIBGHDL_INC:=$(shell $(GHDL) --libghdl-include-dir)
 ALL_LDFLAGS=$(LIBGHDL_LIB) -Wl,-rpath,$(dir $(LIBGHDL_LIB)) $(LDFLAGS)
 
 ALL_CFLAGS=-fPIC -DYOSYS_ENABLE_GHDL -I$(LIBGHDL_INC) $(CFLAGS)
+ALL_CFLAGS += -I/data/src/yosys/share/include
 
 all: ghdl.$(SOEXT)
 

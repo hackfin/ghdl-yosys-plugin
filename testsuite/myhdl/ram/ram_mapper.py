@@ -6,6 +6,8 @@
 
 from pyosys import libyosys as ys
 
+from config import *
+
 import sys
 from map_bram import *
 
@@ -99,25 +101,26 @@ def mem_replace_cell(module, mem, mem_impl, nl, primitive_id):
 	
 	wires = {}
 
-
 	for k in nl.items():
 		wirename = _ID("\\" + k[0])
 		if k[1]:
 			s = k[1][0]
-			if k[1][1] == 'out':
-				print("Connect output", wirename.str())
-				w = module.addWire(ys.new_id(__name__, lineno(), k[0]), s.size())
-				subst_rport = ys.SigSpec(w)
-				repl_cell.setPort(wirename, ys.SigSpec(w))
-				module.connect(s, subst_rport)
-			elif isinstance(s, ys.SigSpec):
+			if isinstance(s, ys.SigSpec):
 				name = wirename.str()
-				print("Connect input", name)
-				w = module.addWire(ys.new_id(__name__, lineno(), k[0]), s.size())
+				wid = _ID("\\" + k[0])
+				# wid = ys.new_id(__name__, lineno(), k[0])
+				w = module.addWire(wid, s.size())
 				sw = ys.SigSpec(w)
-				repl_cell.setPort(wirename, sw)
 
-				module.connect(sw, s)
+				if k[1][1] == 'out':
+					print("Connect output", wirename.str())
+					repl_cell.setPort(wirename, ys.SigSpec(w))
+					module.connect(s, sw)
+				else:
+					print("Connect input", name)
+					repl_cell.setPort(wirename, sw)
+					module.connect(sw, s)
+
 			elif isinstance(s, str):
 				if s in [ '0', '1' ]:
 					c = ys.Const.from_string(s)
@@ -127,7 +130,6 @@ def mem_replace_cell(module, mem, mem_impl, nl, primitive_id):
 
 
 		wr_data = mem.connections_[_ID("\\WR_DATA")]
-		print(nl["A1_WRITE"])
 			
 	module.remove(mem)
 
@@ -171,12 +173,17 @@ def dump_entity(c):
 def yosys_dpram_mapper(plugin, files, top, mapped):
 	design = ys.Design()
 	TECHMAP = 1
+
 	print("Running YOSYS custom mapper")
 	ys.load_plugin(plugin, [])
 	if not TECHMAP: # Without techmap
 		ys.run_pass("read_verilog ecp5_dp16kd.v", design)
 	ys.run_pass("ghdl %s -e %s" % (files, top), design)
+	ys.run_pass("read_verilog -lib %s/cells_sim.v %s/cells_bb.v" % (YOSYS_ECP5_LIBS, YOSYS_ECP5_LIBS), design)
+
 	ys.run_pass("hierarchy -check -top %s" % (top), design)
+
+        
 	
 	modules = design.selected_whole_modules_warn()
 	for module in modules:
@@ -201,7 +208,10 @@ def yosys_dpram_mapper(plugin, files, top, mapped):
 
 	if TECHMAP:
 		ys.run_pass("techmap -map /data/src/yosys/techlibs/ecp5/brams_map.v", design)
+		ys.run_pass("techmap -map /data/src/yosys/techlibs/ecp5/cells_map.v", design)
 
 
+	ys.run_pass("hierarchy -check", design)	
+	ys.run_pass("clean", design)	
 	ys.run_pass("show -prefix %s" % mapped, design)	
 	ys.run_pass("write_verilog %s.v" % (mapped), design)

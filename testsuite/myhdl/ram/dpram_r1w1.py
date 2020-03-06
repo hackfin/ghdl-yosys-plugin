@@ -10,7 +10,7 @@ to synthesize using GHDL and is tested against the synthesized result.
 
 """
 
-IMPLEMENTED = 1
+IMPLEMENTED = 3
 
 from ramgen import *
 
@@ -21,6 +21,9 @@ def dpram_r1w1_verify(a, b):
 	def stim():
 		a.ce.next = 1
 		b.ce.next = 1
+
+		for i in range(4):
+			yield a.clk.posedge
 
 		for i in range(2 ** len(a.addr)):
 			yield a.clk.posedge
@@ -61,4 +64,4 @@ def dpram_r1w1_verify(a, b):
 
 # Make sure to use a minimum of 7 address bits to map to a
 # DP16KD primitive
-run(dpram_r1w1, dpram_r1w1_verify, IMPLEMENTED, 7)
+run(dpram_r1w1, dpram_r1w1_verify, IMPLEMENTED, 8)

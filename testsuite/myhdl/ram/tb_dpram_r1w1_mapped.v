@@ -40,18 +40,18 @@ initial begin
 end
 
 dpram_r1w1 dut(
-    a_we,
-    a_addr,
-    a_clk,
-    a_read,
-    a_ce,
-    a_write,
-    b_we,
-    b_addr,
-    b_clk,
-    b_ce,
-    b_write,
-    b_read
+    .a_ce       ( a_ce ),
+    .a_write    ( a_write ),
+    .a_read     ( a_read ),
+    .a_clk      ( a_clk ),
+    .a_addr     ( a_addr ),
+    .a_we       ( a_we ),
+    .b_ce       ( b_ce ),
+    .b_write    ( b_write ),
+    .b_clk      ( b_clk ),
+    .b_addr     ( b_addr ),
+    .b_we       ( b_we ),
+    .b_read     ( b_read )
 );
 
 endmodule
