@@ -184,5 +184,5 @@ if TECHMAP:
 ys.run_pass("hierarchy -check", design)
 #ys.run_pass("clean", design)
 ys.run_pass("show", design)
-ys.run_pass("write_ilang test.ilang", design)
+ys.run_pass("write_ilang test.il", design)
 ys.run_pass("write_verilog test.v", design)

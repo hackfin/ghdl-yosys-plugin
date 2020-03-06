@@ -9,12 +9,13 @@ from pyosys import libyosys as ys
 from config import *
 
 import sys
-from map_bram import *
+import map_bram
+import dprams
 
 _ID = ys.IdString
 
 PARAM_TRANSLATE = { 
-	"MEMID"           : str,
+	"MEMID"           : None,
     "RD_CLK_ENABLE"   : str,
     "RD_CLK_POLARITY" : str,
     "RD_PORTS"        : int,
@@ -37,7 +38,6 @@ def to_mem_impl_description(c):
 	"Translates a memory cell info into a descriptor dictionary"
 	d = {}
 
-
 	conn = c.connections_
 	parameters = c.parameters
 
@@ -48,8 +48,11 @@ def to_mem_impl_description(c):
 			t = PARAM_TRANSLATE[k]
 			if t == int:
 				d[k] = v.as_int()
-			else:
+			elif t == str:
 				d[k] = v.as_string()
+			else:
+				d[k] = v
+
 		except KeyError:
 			d[k] = v.as_string()
 
@@ -76,7 +79,6 @@ def to_mem_impl_description(c):
 		else:
 			d[k] = v
 
-	
 	return d
 
 import inspect
@@ -84,8 +86,9 @@ import inspect
 def lineno():
 	return inspect.currentframe().f_back.f_lineno
 
-def mem_replace_cell(module, mem, mem_impl, nl, primitive_id):
-	repl_cell = module.addCell(_ID("$meminst0"), _ID(primitive_id))
+def mem_replace_cell(module, i, mem, mem_impl, nl, primitive_id):
+	repl_cell = module.addCell(_ID("\\meminst%d" % i), _ID(primitive_id))
+	print("Added cell", repl_cell)
 
 	width, abits = mem_impl['WIDTH'], mem_impl['ABITS']
 	print("Phys. Data width: %d, Address width: %d" % (width, abits))
@@ -99,15 +102,13 @@ def mem_replace_cell(module, mem, mem_impl, nl, primitive_id):
 
 	repl_cell.parameters = param
 	
-	wires = {}
-
 	for k in nl.items():
 		wirename = _ID("\\" + k[0])
 		if k[1]:
 			s = k[1][0]
 			if isinstance(s, ys.SigSpec):
 				name = wirename.str()
-				wid = _ID("\\" + k[0])
+				wid = _ID("\\" + k[0] + "%d" % i)
 				# wid = ys.new_id(__name__, lineno(), k[0])
 				w = module.addWire(wid, s.size())
 				sw = ys.SigSpec(w)
@@ -128,22 +129,19 @@ def mem_replace_cell(module, mem, mem_impl, nl, primitive_id):
 				else:
 					raise ValueError("Unsupported string value")
 
-
-		wr_data = mem.connections_[_ID("\\WR_DATA")]
-			
 	module.remove(mem)
 
 
-def map_tdp_memory(module, m, pid):
+def map_tdp_memory(module, i, m, pid):
 	"Map true dual port memory"
 
 	mem_impl = to_mem_impl_description(m)
-	pmaps = analyze_cell(mem_impl, ECP5_DPRAM)
+	pmaps = map_bram.analyze_cell(mem_impl, map_bram.ECP5_DPRAM)
 	print("Mapping...")
-	print(pmaps)
-	nl = map_cell(mem_impl, pmaps, TARGET_TDP_RAM)
+	# print(pmaps)
+	nl = map_bram.map_cell(mem_impl, pmaps, map_bram.TARGET_TDP_RAM)
 	for n in nl.items():
-		print(n)
+		# print(n)
 		if n[1]:
 			if n[1][1] == 'out':
 				print(n[0], " => ", dprams.getid(n[1][0]))
@@ -152,7 +150,9 @@ def map_tdp_memory(module, m, pid):
 		else:
 			print(n[0], " <= (others => 'X')")
 
-	mem_replace_cell(module, m, mem_impl, nl, pid)
+	print("#### DONE ####")
+
+	mem_replace_cell(module, i, m, mem_impl, nl, pid)
 
 def dump_entity(c):
 	conn = c.connections_
@@ -170,21 +170,22 @@ def dump_entity(c):
 		sig = conn[k]
 		print(k, sig, sig.size())
 
-def yosys_dpram_mapper(plugin, files, top, mapped):
+def yosys_dpram_mapper(plugin, cmd, files, top, mapped):
 	design = ys.Design()
 	TECHMAP = 1
 
 	print("Running YOSYS custom mapper")
-	ys.load_plugin(plugin, [])
+	if plugin:
+		ys.load_plugin(plugin, [])
+		ys.run_pass(cmd, design)
+
 	if not TECHMAP: # Without techmap
 		ys.run_pass("read_verilog ecp5_dp16kd.v", design)
-	ys.run_pass("ghdl %s -e %s" % (files, top), design)
+
 	ys.run_pass("read_verilog -lib %s/cells_sim.v %s/cells_bb.v" % (YOSYS_ECP5_LIBS, YOSYS_ECP5_LIBS), design)
 
 	ys.run_pass("hierarchy -check -top %s" % (top), design)
 
-        
-	
 	modules = design.selected_whole_modules_warn()
 	for module in modules:
 		# print(dir(module))
@@ -198,13 +199,13 @@ def yosys_dpram_mapper(plugin, files, top, mapped):
 
 
 	module = modules[0]
-	for m in memories:
+	for i, m in enumerate(memories):
 		pid = "$__ECP5_DP16KD"
 		# When not using techmap, bind to local blackbox definition:
 		if not TECHMAP:
 			pid = "\\" + pid
 
-		map_tdp_memory(module, m, pid)
+		map_tdp_memory(module, i, m, pid)
 
 	if TECHMAP:
 		ys.run_pass("techmap -map /data/src/yosys/techlibs/ecp5/brams_map.v", design)
@@ -214,4 +215,4 @@ def yosys_dpram_mapper(plugin, files, top, mapped):
 	ys.run_pass("hierarchy -check", design)	
 	ys.run_pass("clean", design)	
 	ys.run_pass("show -prefix %s" % mapped, design)	
-	ys.run_pass("write_verilog %s.v" % (mapped), design)
+	ys.run_pass("write_verilog -norename %s.v" % (mapped), design)

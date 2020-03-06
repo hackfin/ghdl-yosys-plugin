@@ -2,7 +2,7 @@
 #
 #
 
-PYTHON ?= python
+PYTHON ?= python3
 
 WORKDIR ?= work
 

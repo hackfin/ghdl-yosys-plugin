@@ -13,7 +13,7 @@ into TRELLIS_DPR16X4 primitives
 
 """
 
-IMPLEMENTED = 0
+IMPLEMENTED = 3
 
 from ramgen import *
 

@@ -46,7 +46,11 @@ def clkdomain_key(which, cell, j):
 		print(k, cell[k])
 	except KeyError:
 		print(cell)
-	idstring = dprams.getid(cell[k][j]) + '_' + cell[k + '_POLARITY'][j]
+
+	s = cell[k][j]
+	# If it's a wire, get its name:
+	wid = dprams.getid(s)
+	idstring = wid + '_' + cell[k + '_POLARITY'][j]
 	idstring += "_" + cell[k + "_ENABLE"][j]
 	return idstring
 

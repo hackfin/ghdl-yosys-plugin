@@ -12,6 +12,8 @@ DEPTH = 7
 from myhdl import Signal, intbv
 from myhdl._Signal import _Signal
 
+from yosys_helper import YosysSignal
+
 a_clk, b_clk     = [ Signal(bool()) for i in range(2) ]
 a_addr, b_addr   = [ Signal(intbv()[DEPTH:]) for i in range(2) ]
 a_read, b_read   = [ Signal(intbv()[WIDTH:]) for i in range(2) ]
@@ -140,8 +142,17 @@ def getid(x):
 		return x._name
 	elif isinstance(x, str):
 		return x
+	elif isinstance(x, YosysSignal):
+		return x.name()
 	else:
-		return str(x.get_hash())
+		if x.is_wire():
+			s = x.as_wire().name.str()
+			if len(s) > 0:
+				return s
+			else:
+				return str(x.get_hash())
+		else:
+			return str(x.get_hash())
 
 def extend(sig, width):
 	if isinstance(sig, _Signal):

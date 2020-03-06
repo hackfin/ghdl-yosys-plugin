@@ -27,7 +27,7 @@ class DPport:
 		self.write = Signal(modbv()[dwidth:])
 		self.read = Signal(modbv()[dwidth:])
 		# Low/high select:
-		self.sel = [ Signal(bool()) for i in range(2) ]
+		self.sel = Signal(intbv()[2:])
 
 
 @block
@@ -107,7 +107,7 @@ def dpram_test(a, b, ent, CLKMODE, HEXFILE = False, verify = False):
 @block
 def ram_v(name, a, b, HEXFILE):
 	params = { }
-	return setupCosimulationIcarus(params, name=name, a_clk=a.clk, a_ce=a.ce, a_we=a.we,  a_addr=a.addr, a_read=a.read, a_write=a.write, b_clk=b.clk, b_ce=b.ce, b_we=b.we, b_addr=b.addr, b_read=b.read, b_write=b.write)
+	return setupCosimulationIcarus(params, name=name, a_clk=a.clk, a_ce=a.ce, a_we=a.we,  a_addr=a.addr, a_read=a.read, a_write=a.write, b_clk=b.clk, b_ce=b.ce, b_we=b.we, b_addr=b.addr, b_read=b.read, b_write=b.write, a_sel=a.sel, b_sel=b.sel)
 
 
 @block
@@ -125,7 +125,7 @@ def ram_mapped_vhdl(name, a, b, HEXFILE = False):
 	subprocess.call(map_cmd)
 	params = { 'ADDR_W' : len(a.addr) }
 
-	return setupCosimulationIcarus(params, name=mapped, libfiles=LIBFILES, a_clk=a.clk, a_ce=a.ce, a_we=a.we,  a_addr=a.addr, a_read=a.read, a_write=a.write, b_clk=b.clk, b_ce=b.ce, b_we=b.we, b_addr=b.addr, b_read=b.read, b_write=b.write)
+	return setupCosimulationIcarus(params, name=name, a_clk=a.clk, a_ce=a.ce, a_we=a.we,  a_addr=a.addr, a_read=a.read, a_write=a.write, b_clk=b.clk, b_ce=b.ce, b_we=b.we, b_addr=b.addr, b_read=b.read, b_write=b.write, a_sel=a.sel, b_sel=b.sel)
 
 
 def ram_mapped_myhdl(name, a, b, HEXFILE = False):
@@ -133,11 +133,12 @@ def ram_mapped_myhdl(name, a, b, HEXFILE = False):
 
 	files = "%s.vhd pck_myhdl_011.vhd" % name
 	top =  name
-	ram_mapper.yosys_dpram_mapper(XHDL_PLUGIN, files, top, mapped)
+	ram_mapper.yosys_dpram_mapper(XHDL_PLUGIN,
+		"ghdl %s -e %s" % (files, top), files, top, mapped)
 
 	params = { 'ADDR_W' : len(a.addr) }
 
-	return setupCosimulationIcarus(params, name=mapped, libfiles=LIBFILES, a_clk=a.clk, a_ce=a.ce, a_we=a.we,  a_addr=a.addr, a_read=a.read, a_write=a.write, b_clk=b.clk, b_ce=b.ce, b_we=b.we, b_addr=b.addr, b_read=b.read, b_write=b.write)
+	return setupCosimulationIcarus(params, name=mapped, libfiles=LIBFILES, a_clk=a.clk, a_ce=a.ce, a_we=a.we,  a_addr=a.addr, a_read=a.read, a_write=a.write, b_clk=b.clk, b_ce=b.ce, b_we=b.we, b_addr=b.addr, b_read=b.read, b_write=b.write, a_sel=a.sel, b_sel=b.sel)
 	
 	
 @block
