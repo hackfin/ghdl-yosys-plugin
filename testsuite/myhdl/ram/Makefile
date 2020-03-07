@@ -15,7 +15,7 @@ syn-%.vhd: %.vhd pck_myhdl_011.vhd
 DUTIES = syn-test_dpram_r2w1.vhd
 
 # Entities to include in the test:
-TEST_ENTITIES = dpram_r1w1 dpram_r2w1 dpram_r2w1_wt dpram_r2w1_raw
+TEST_ENTITIES = dpram_r1w1 dpram_r2w1_hl dpram_r2w1 dpram_r2w1_wt dpram_r2w1_raw
 
 GHDL ?= ghdl
 
@@ -64,7 +64,7 @@ check:  $(ENTITIES:%=%.json)
 test:
 	@for i in $(TEST_ENTITIES); do \
 		echo Running test for $$i; \
-		$(PYTHON) $$i.py; \
+		if ($(PYTHON) $$i.py) then false; fi; \
 	done
 
 .PHONY: test

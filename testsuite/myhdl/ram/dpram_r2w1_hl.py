@@ -1,8 +1,21 @@
+"""
+Dual port RAM test suite
+
+(c) 2020   <hackfin@section5.ch>
+        
+LICENSE: GPL v2
+
+Version with H/L select, instances two memory units.
+
+See ramgen for configuration of 'IMPLEMENTED' variable
+
+"""
+
 from myhdl import *
 
 from ramgen import *
 
-IMPLEMENTED = 3
+IMPLEMENTED = IMPLEMENTATION_VHDL_CUSTOM_MAPPED
 
 @block
 def dpram_r2w1_hl(a, b, HEXFILE = None, USE_CE = False):

@@ -5,14 +5,13 @@ Dual port RAM test suite
         
 LICENSE: GPL v2
 
-If the IMPLEMENTED variable is set to 1, this construct is expected
-to synthesize using GHDL and is tested against the synthesized result.
+See ramgen for configuration of 'IMPLEMENTED' variable
 
 """
 
-IMPLEMENTED = 3
-
 from ramgen import *
+
+IMPLEMENTED = IMPLEMENTATION_VHDL_CUSTOM_MAPPED
 
 @block
 def dpram_r1w1_verify(a, b):

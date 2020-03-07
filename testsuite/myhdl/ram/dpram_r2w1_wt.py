@@ -5,15 +5,14 @@ Dual port RAM test suite
         
 LICENSE: GPL v2
 
-If the IMPLEMENTED variable is set to 1, this construct is expected
-to synthesize using GHDL and is tested against the synthesized result.
+See ramgen for configuration of 'IMPLEMENTED' variable
 
 Currently false-detected with one asynchronous READ port, synthesises
 into TRELLIS_DPR16X4 primitives
 
 """
 
-IMPLEMENTED = 3
+IMPLEMENTED = IMPLEMENTATION_VERILOG_MODEL
 
 from ramgen import *
 

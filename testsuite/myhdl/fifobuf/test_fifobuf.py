@@ -10,6 +10,8 @@ from ivl_cosim import *
 @block
 def fifobuf_mapped(wren, idata, iready, odata, oready, rden, err, reset, clk):
 
+	args = locals()
+
 	name = "fifobuffer"
 	mapped = name + "_mapped"
 
@@ -22,9 +24,9 @@ def fifobuf_mapped(wren, idata, iready, odata, oready, rden, err, reset, clk):
 		write_verilog %s.v
  	""" % (name, name, name, mapped)]
  	subprocess.call(map_cmd)
-	return setupCosimulationIcarus({}, name=mapped, libfiles=LIBFILES, wren=wren,
-		idata=idata, iready=iready, odata=odata, oready=oready, rden=rden, err=err,
-		reset=reset, clk=clk)
+	options = { "name" : mapped, "libfiles" : LIBFILES }
+	
+	return setupCosimulationIcarus(options, {}, args)
 
 @block
 def clkgen(clk, DELAY):

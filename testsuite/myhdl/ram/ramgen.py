@@ -18,6 +18,16 @@ sys.path.append("..")
 from ivl_cosim import *
 import ram_mapper
 
+# Implementation of the model. Determines what to co-simulate or verify
+# against. If the yosys default BRAM pass has implemented a type of
+# BRAM, you may set IMPLEMENTATION = IMPLEMENTATION_VHDL_YOSYS_MAPPED
+# in the corresponding dpram*.py test case.
+
+IMPLEMENTATION_MYHDL_ONLY, \
+IMPLEMENTATION_VHDL_YOSYS_MAPPED, \
+IMPLEMENTATION_VERILOG_MODEL, \
+IMPLEMENTATION_VHDL_CUSTOM_MAPPED = range(4)
+
 class DPport:
 	def __init__(self, awidth, dwidth):
 		self.clk = Signal(bool(0))
@@ -104,14 +114,32 @@ def dpram_test(a, b, ent, CLKMODE, HEXFILE = False, verify = False):
 
 	return instances()
 
+# Clean way to do this would be: determine the proper MyHDL function for the
+# mangling.
+def map_ports(portdict):
+	"Auto-map port class members into mangled names, like: a.clk -> a_clk"
+	pmap = { }
+	for p in portdict.items():
+		for v in p[1].__dict__.items():
+			pmap[p[0] + "_" + v[0]] = getattr(p[1], v[0])
+	return pmap
+		
+
 @block
 def ram_v(name, a, b, HEXFILE):
+	"Translated MyHDL -> Verilog cosimulation unit"
 	params = { }
-	return setupCosimulationIcarus(params, name=name, a_clk=a.clk, a_ce=a.ce, a_we=a.we,  a_addr=a.addr, a_read=a.read, a_write=a.write, b_clk=b.clk, b_ce=b.ce, b_we=b.we, b_addr=b.addr, b_read=b.read, b_write=b.write, a_sel=a.sel, b_sel=b.sel)
+	signals = { "a": a, "b": b }
+	options = { "name" : name, "libfiles" : LIBFILES} 
+	portmap = map_ports(signals)
+	return setupCosimulationIcarus(options, params, portmap)
 
 
 @block
 def ram_mapped_vhdl(name, a, b, HEXFILE = False):
+	"""Translated MyHDL -> VHDL cosimulation unit, using synth_ecp5
+script for default mapping"""
+
 	mapped = name + "_mapped"
 
 	map_cmd = ['yosys', '-m', 'ghdl',
@@ -125,10 +153,14 @@ def ram_mapped_vhdl(name, a, b, HEXFILE = False):
 	subprocess.call(map_cmd)
 	params = { 'ADDR_W' : len(a.addr) }
 
-	return setupCosimulationIcarus(params, name=name, a_clk=a.clk, a_ce=a.ce, a_we=a.we,  a_addr=a.addr, a_read=a.read, a_write=a.write, b_clk=b.clk, b_ce=b.ce, b_we=b.we, b_addr=b.addr, b_read=b.read, b_write=b.write, a_sel=a.sel, b_sel=b.sel)
+	signals = { "a": a, "b": b }
+	options = { "name" : name, "libfiles" : LIBFILES} 
+	portmap = map_ports(signals)
+	return setupCosimulationIcarus(options, params, portmap)
 
-
+@block
 def ram_mapped_myhdl(name, a, b, HEXFILE = False):
+	"""MyHDL based RAM primitive mapping auxiliary"""
 	mapped = name + "_mapped"
 
 	files = "%s.vhd pck_myhdl_011.vhd" % name
@@ -137,9 +169,11 @@ def ram_mapped_myhdl(name, a, b, HEXFILE = False):
 		"ghdl %s -e %s" % (files, top), files, top, mapped)
 
 	params = { 'ADDR_W' : len(a.addr) }
+	signals = { "a": a, "b": b }
+	options = { "name" : mapped, "libfiles" : LIBFILES} 
+	portmap = map_ports(signals)
+	return setupCosimulationIcarus(options, params, portmap)
 
-	return setupCosimulationIcarus(params, name=mapped, libfiles=LIBFILES, a_clk=a.clk, a_ce=a.ce, a_we=a.we,  a_addr=a.addr, a_read=a.read, a_write=a.write, b_clk=b.clk, b_ce=b.ce, b_we=b.we, b_addr=b.addr, b_read=b.read, b_write=b.write, a_sel=a.sel, b_sel=b.sel)
-	
 	
 @block
 def clkgen(clka, clkb, DELAY_A, DELAY_B):
@@ -329,16 +363,16 @@ def convert(which, MODE, addrbits):
 	# test_init.convert("VHDL")
 	# test_init.convert("Verilog")
 
-def testbench(which, verify, MODE=0, ADDRBITS=6):
+def testbench(which, verify, implementation=0, ADDRBITS=6):
 	"Test bench to co-simulate against conversion/synthesis results"
-	if MODE == 1:
+	if implementation == IMPLEMENTATION_VHDL_YOSYS_MAPPED:
 		# Use VHDL RAM model for mapping, co-simulate synthesized Verilog
 		# output
 		r = ram_mapped_vhdl
-	elif MODE == 2:
+	elif implementation == IMPLEMENTATION_VERILOG_MODEL:
 		# Use translated Verilog model:
 		r = ram_v
-	elif MODE == 3:
+	elif implementation == IMPLEMENTATION_VHDL_CUSTOM_MAPPED:
 		# Translate using python based memory mapper via pyosys
 		r = ram_mapped_myhdl
 	else:

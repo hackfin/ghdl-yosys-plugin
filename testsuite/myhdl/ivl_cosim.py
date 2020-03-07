@@ -25,13 +25,13 @@ try:
 except:
 	pass
 
-def setupCosimulationIcarus(paramdict, **kwargs):
+def setupCosimulationIcarus(options, parameters, kwargs):
 	try:
-		libfiles = kwargs['libfiles']
+		libfiles = options['libfiles']
 	except KeyError:
 		libfiles = ""
 
-	name = kwargs['name']
+	name = options['name']
 
 	objfile = "%s.o" % name
 	if os.path.exists(objfile):
@@ -41,8 +41,8 @@ def setupCosimulationIcarus(paramdict, **kwargs):
 	analyze_cmd += ['-s', "tb_" + name]
 	analyze_cmd += ['-D', "mixed_hdl"]
 	
-	for p in paramdict.keys():
-		analyze_cmd += [ '-P', 'tb_%s.%s=%s' % (name, p, paramdict[p]) ]
+	for p in parameters.keys():
+		analyze_cmd += [ '-P', 'tb_%s.%s=%s' % (name, p, parameters[p]) ]
 
 	analyze_cmd += ['-o', objfile, '%s.v' %name, 'tb_%s.v' % name]
 	analyze_cmd += libfiles

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3.5
 #
-# Yosys interfacing
+# Yosys interfacing test setup for DPRAM
 #
 # <hackfin@section5.ch>
 #
