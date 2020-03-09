@@ -177,7 +177,8 @@ def yosys_dpram_mapper(plugin, cmd, files, top, mapped):
 	print("Running YOSYS custom mapper")
 	if plugin:
 		ys.load_plugin(plugin, [])
-		ys.run_pass(cmd, design)
+
+	ys.run_pass(cmd, design)
 
 	if not TECHMAP: # Without techmap
 		ys.run_pass("read_verilog ecp5_dp16kd.v", design)
