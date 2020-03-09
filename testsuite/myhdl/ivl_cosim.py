@@ -21,7 +21,7 @@ LIBFILES = [ ECP5_LIB + "/cells_sim.v", "-I", ECP5_LIB]
 
 # If we simulate vendor libs, we might need this one:
 try:
-	LIBFILES += [ ECP5_LIB + "/gsr_pur_assign.v"]
+	LIBFILES += [ ECP5_EMU_LIBS + "/gsr_pur_assign.v"]
 except:
 	pass
 

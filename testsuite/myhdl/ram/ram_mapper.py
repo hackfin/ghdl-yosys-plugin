@@ -14,6 +14,8 @@ import dprams
 
 _ID = ys.IdString
 
+YOSYS_ECP5_LIBS = YOSYS_TECHLIBS + "/ecp5"
+
 PARAM_TRANSLATE = { 
 	"MEMID"           : None,
     "RD_CLK_ENABLE"   : str,
@@ -178,6 +180,7 @@ def yosys_dpram_mapper(plugin, cmd, files, top, mapped):
 	if plugin:
 		ys.load_plugin(plugin, [])
 
+	print("Running command '%s'" % cmd)
 	ys.run_pass(cmd, design)
 
 	if not TECHMAP: # Without techmap

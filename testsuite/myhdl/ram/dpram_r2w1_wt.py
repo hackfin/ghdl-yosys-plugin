@@ -12,10 +12,10 @@ into TRELLIS_DPR16X4 primitives
 
 """
 
-IMPLEMENTED = IMPLEMENTATION_VERILOG_MODEL
 
 from ramgen import *
 
+IMPLEMENTED = IMPLEMENTATION_VERILOG_MODEL
 
 @block
 def dpram_r2w1_verify(a, b):
