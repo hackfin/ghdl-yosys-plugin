@@ -3,8 +3,8 @@
 topdir=../..
 . $topdir/testenv.sh
 
-for f in lsl lsr asr; do
-  formal "test_${f}"
+for f in loop1; do
+  synth "${f}.vhdl -e ${f}"
 done
 
 clean
