@@ -1,13 +1,13 @@
 `timescale 1 ns / 1 ps
 
-module vhi ( z );
-    output z ;
+module VHI ( Z );
+    output Z ;
   supply1 VSS;
-  buf (z , VSS);
+  buf (Z , VSS);
 endmodule 
 
-module vlo ( z );
-	output z;
+module VLO ( Z );
+	output Z;
   supply1 VSS;
-  buf (z , VSS);
+  buf (Z , VSS);
 endmodule
