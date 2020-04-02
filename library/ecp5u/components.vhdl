@@ -3755,9 +3755,10 @@ component EHXPLLL is
     CLKOS3_FPHASE : integer := 0;
     FEEDBK_PATH : string := "CLKOP";
     CLKOP_TRIM_POL : string := "RISING";
-    CLKOP_TRIM_DELAY : integer := 0;
+	-- Need to uncomment these, otherwise nextpnr throws errors
+    -- CLKOP_TRIM_DELAY : integer := 0;
     CLKOS_TRIM_POL : string := "RISING";
-    CLKOS_TRIM_DELAY : integer := 0;
+    -- CLKOS_TRIM_DELAY : integer := 0;
     OUTDIVIDER_MUXA : string := "DIVA";
     OUTDIVIDER_MUXB : string := "DIVB";
     OUTDIVIDER_MUXC : string := "DIVC";

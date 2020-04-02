@@ -66,6 +66,17 @@ architecture behaviour of versa_ecp5_top is
     signal rxready_d      : std_ulogic := '0';
 	signal uart_data      : unsigned(7 downto 0);
 
+
+component pll_mac is
+    port (
+        clki: in  std_logic; 
+        clkop: out  std_logic; 
+        clkos: out  std_logic; 
+        clkos2: out  std_logic; 
+        clkos3: out  std_logic; 
+        lock: out  std_logic);
+end component pll_mac;
+
  
 begin
 
@@ -86,14 +97,14 @@ begin
     end process;
 
 
-clk_pll1: entity work.pll_mac
+clk_pll1: pll_mac
     port map (
-        CLKI    =>  clk_in,
-        CLKOP   =>  open,
-        CLKOS   =>  mclk, -- 25 Mhz
-        CLKOS2  =>  open,
-        CLKOS3  =>  pclk,
-        LOCK    =>  mclk_locked
+        clki    =>  clk_in,
+        clkop   =>  open,
+        clkos   =>  mclk, -- 25 mhz
+        clkos2  =>  open,
+        clkos3  =>  pclk,
+        lock    =>  mclk_locked
 	);
 
 	-- Static config:

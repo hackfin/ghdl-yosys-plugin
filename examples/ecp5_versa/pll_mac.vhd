@@ -11,12 +11,12 @@ use ecp5um.components.all;
 
 entity pll_mac is
     port (
-        CLKI: in  std_logic; 
-        CLKOP: out  std_logic; 
-        CLKOS: out  std_logic; 
-        CLKOS2: out  std_logic; 
-        CLKOS3: out  std_logic; 
-        LOCK: out  std_logic);
+        clki: in  std_logic; 
+        clkop: out  std_logic; 
+        clkos: out  std_logic; 
+        clkos2: out  std_logic; 
+        clkos3: out  std_logic; 
+        lock: out  std_logic);
 end pll_mac;
 
 architecture Structure of pll_mac is
@@ -62,20 +62,20 @@ begin
         CLKOS3_FPHASE=>  0, CLKOS3_CPHASE=>  9, CLKOS2_FPHASE=>  0, 
         CLKOS2_CPHASE=>  14, CLKOS_FPHASE=>  0, CLKOS_CPHASE=>  29, 
         CLKOP_FPHASE=>  0, CLKOP_CPHASE=>  5, PLL_LOCK_MODE=>  0, 
-        CLKOS_TRIM_DELAY=>  0, CLKOS_TRIM_POL=> "FALLING", 
-        CLKOP_TRIM_DELAY=>  0, CLKOP_TRIM_POL=> "FALLING", 
+        -- CLKOS_TRIM_DELAY=>  0, CLKOS_TRIM_POL=> "FALLING", 
+        -- CLKOP_TRIM_DELAY=>  0, CLKOP_TRIM_POL=> "FALLING", 
         OUTDIVIDER_MUXD=> "DIVD", CLKOS3_ENABLE=> "ENABLED", 
         OUTDIVIDER_MUXC=> "DIVC", CLKOS2_ENABLE=> "ENABLED", 
         OUTDIVIDER_MUXB=> "DIVB", CLKOS_ENABLE=> "ENABLED", 
         OUTDIVIDER_MUXA=> "DIVA", CLKOP_ENABLE=> "ENABLED", CLKOS3_DIV=>  10, 
         CLKOS2_DIV=>  15, CLKOS_DIV=>  30, CLKOP_DIV=>  6, CLKFB_DIV=>  5, 
         CLKI_DIV=>  4, FEEDBK_PATH=> "CLKOP")
-        port map (CLKI=>CLKI, CLKFB=>CLKOP_t, PHASESEL1=>scuba_vlo, 
-            PHASESEL0=>scuba_vlo, PHASEDIR=>scuba_vlo, 
-            PHASESTEP=>scuba_vlo, PHASELOADREG=>scuba_vlo, 
-            STDBY=>scuba_vlo, PLLWAKESYNC=>scuba_vlo, RST=>scuba_vlo, 
-            ENCLKOP=>scuba_vlo, ENCLKOS=>scuba_vlo, ENCLKOS2=>scuba_vlo, 
-            ENCLKOS3=>scuba_vlo, CLKOP=>CLKOP_t, CLKOS=>CLKOS_t, 
+        port map (CLKI=>CLKI, CLKFB=>CLKOP_t, PHASESEL1=>'0', 
+            PHASESEL0=>'0', PHASEDIR=>'0', 
+            PHASESTEP=>'0', PHASELOADREG=>'0', 
+            STDBY=>'0', PLLWAKESYNC=>'0', RST=> '0', 
+            ENCLKOP=>'0', ENCLKOS=>'0', ENCLKOS2=>'0', 
+            ENCLKOS3=>'0', CLKOP=>CLKOP_t, CLKOS=>CLKOS_t, 
             CLKOS2=>CLKOS2_t, CLKOS3=>CLKOS3_t, LOCK=>LOCK, 
             INTLOCK=>open, REFCLK=>REFCLK, CLKINTFB=>open);
 
