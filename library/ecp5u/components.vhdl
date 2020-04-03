@@ -3755,9 +3755,14 @@ component EHXPLLL is
     CLKOS3_FPHASE : integer := 0;
     FEEDBK_PATH : string := "CLKOP";
     CLKOP_TRIM_POL : string := "RISING";
-	-- Need to uncomment these, otherwise nextpnr throws errors
+	-- FIXME: Update nextpnr provided this is correct:
+	-- https://github.com/hackfin/nextpnr/commit/707289c8d60161f9544a75e04166fefc9f656999 
+    CLKOP_TRIM_DELAY : string := "0";
+	-- Correct type should be:
     -- CLKOP_TRIM_DELAY : integer := 0;
     CLKOS_TRIM_POL : string := "RISING";
+	-- FIXME: This type is not the default type from the component decl:
+    CLKOS_TRIM_DELAY : string := "0";
     -- CLKOS_TRIM_DELAY : integer := 0;
     OUTDIVIDER_MUXA : string := "DIVA";
     OUTDIVIDER_MUXB : string := "DIVB";

@@ -62,6 +62,8 @@ begin
         CLKOS3_FPHASE=>  0, CLKOS3_CPHASE=>  9, CLKOS2_FPHASE=>  0, 
         CLKOS2_CPHASE=>  14, CLKOS_FPHASE=>  0, CLKOS_CPHASE=>  29, 
         CLKOP_FPHASE=>  0, CLKOP_CPHASE=>  5, PLL_LOCK_MODE=>  0, 
+		-- FIXME: Update nextpnr provided this is correct:
+		-- https://github.com/hackfin/nextpnr/commit/707289c8d60161f9544a75e04166fefc9f656999 
         -- CLKOS_TRIM_DELAY=>  0, CLKOS_TRIM_POL=> "FALLING", 
         -- CLKOP_TRIM_DELAY=>  0, CLKOP_TRIM_POL=> "FALLING", 
         OUTDIVIDER_MUXD=> "DIVD", CLKOS3_ENABLE=> "ENABLED", 
