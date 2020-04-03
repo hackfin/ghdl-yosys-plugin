@@ -65,7 +65,7 @@ package ram is
 		generic (
 			ADDR_W      : natural := 6;
 			DATA_W      : natural := 16;
-			INIT_DATA   : string  := "mem.hex";
+			INIT_HEX    : string  := "mem.hex";
 			SYN_RAMTYPE : string  := "block_ram"
 		);
 		port (
@@ -90,7 +90,7 @@ package ram is
 		generic (
 			ADDR_W      : natural := 6;
 			DATA_W      : natural := 32;
-			INIT_DATA   : string  := "mem32.hex";
+			INIT_HEX    : string  := "mem32.hex";
 			SYN_RAMTYPE : string := "block_ram"
 		);
 		port (
